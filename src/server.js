@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 import "./config/passport.js";
 import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 app.get("/", (req, res) => {
   res.send("Bitewise API is running");
