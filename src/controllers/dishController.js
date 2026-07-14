@@ -10,12 +10,11 @@ export const getDishes = async (req, res) => {
     return res.status(400).json({ message: 'restaurantId or userId is required' })
   }
 
-  
-    // When fetching by restaurantId, use an aggregation pipeline instead of
-    // a regular find(). This groups all logs of the same dish together so that
-    // if 3 people logged "mushroom burger", it return one result with logCount: 3
-    // instead of 3 separate documents.
-  
+  // When fetching by restaurantId, use an aggregation pipeline instead of
+  // a regular find(). This groups all logs of the same dish together so that
+  // if 3 people logged "mushroom burger", it return one result with logCount: 3
+  // instead of 3 separate documents.
+
   try {
     if (restaurantId) {
       const dishes = await Dish.aggregate([
@@ -65,7 +64,33 @@ export const getDishes = async (req, res) => {
       return res.status(200).json(dishes)
     }
 
-    const dishes = await Dish.find({ userId }).sort({ createdAt: -1 })
+    // When fetching by userId, join with restaurants to get the restaurant name
+    const dishes = await Dish.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: 'restaurants',
+          localField: 'restaurantId',
+          foreignField: '_id',
+          as: 'restaurant'
+        }
+      },
+      { $unwind: '$restaurant' },
+      {
+        $project: {
+          _id: 1,
+          dishName: 1,
+          freeFrom: 1,
+          modifications: 1,
+          otherModifications: 1,
+          restaurantId: 1,
+          restaurantName: '$restaurant.name',
+          createdAt: 1,
+        }
+      }
+    ])
+
     res.status(200).json(dishes)
 
   } catch (error) {

@@ -30,6 +30,8 @@ export const register = async (req, res) => {
       lastName: newUser.lastName,
       email: newUser.email,
       allergens: newUser.allergens,
+      favourites: newUser.favourites,
+      defaultLocation: newUser.defaultLocation,
       createdAt: newUser.createdAt,
     });
   } catch (error) {

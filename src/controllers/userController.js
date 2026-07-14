@@ -1,5 +1,29 @@
 import User from "../models/User.js";
 
+// GET /api/users/me
+export const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      allergens: user.allergens,
+      favourites: user.favourites,
+      defaultLocation: user.defaultLocation,
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 // GET /api/users/:id
 export const getUser = async (req, res) => {
   try {
@@ -24,7 +48,6 @@ export const updateUser = async (req, res) => {
   const { firstName, lastName, email, allergens, defaultLocation } = req.body;
 
   try {
-    // Check if email is already in use by another account
     if (email) {
       const existingUser = await User.findOne({ email });
       if (existingUser && existingUser._id.toString() !== req.params.id) {
@@ -53,7 +76,6 @@ export const addFavourite = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
-    // Check if restaurant is already in favourites
     if (user.favourites.includes(req.params.restaurantId)) {
       return res.status(409).json({ message: "Restaurant already in favourites" });
     }
@@ -76,7 +98,6 @@ export const removeFavourite = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
-    // Check if restaurant is actually in favourites
     if (!user.favourites.includes(req.params.restaurantId)) {
       return res.status(404).json({ message: "Restaurant not found in favourites" });
     }

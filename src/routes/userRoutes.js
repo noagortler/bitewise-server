@@ -1,9 +1,9 @@
 import express from "express";
-import { getUser, updateUser, addFavourite, removeFavourite } from "../controllers/userController.js";
+import { getCurrentUser, getUser, updateUser, addFavourite, removeFavourite } from "../controllers/userController.js";
 import { isAuthenticated } from "../middleware/auth.js";
 
 const router = express.Router();
-
+router.get("/me", isAuthenticated, getCurrentUser);
 router.get("/:id", isAuthenticated, getUser);
 router.put("/:id", isAuthenticated, updateUser);
 router.post("/:id/favourites/:restaurantId", isAuthenticated, addFavourite);
