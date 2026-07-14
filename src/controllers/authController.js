@@ -16,23 +16,33 @@ export const register = async (req, res) => {
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Capitalize first letter of first and last name
+    const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
     const newUser = await User.create({
-      firstName,
-      lastName,
+      firstName: capitalize(firstName),
+      lastName: capitalize(lastName),
       email,
       password: hashedPassword,
       allergens: allergens || [],
     });
 
-    res.status(201).json({
-      _id: newUser._id,
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      email: newUser.email,
-      allergens: newUser.allergens,
-      favourites: newUser.favourites,
-      defaultLocation: newUser.defaultLocation,
-      createdAt: newUser.createdAt,
+    // Log the user in automatically after registration
+    req.logIn(newUser, (err) => {
+      if (err) {
+        return res.status(500).json({ message: "Registration succeeded but login failed" });
+      }
+
+      res.status(201).json({
+        _id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        allergens: newUser.allergens,
+        favourites: newUser.favourites,
+        defaultLocation: newUser.defaultLocation,
+        createdAt: newUser.createdAt,
+      });
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });

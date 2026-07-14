@@ -67,6 +67,23 @@ export const updateUser = async (req, res) => {
   }
 };
 
+// DELETE /api/users/:id
+export const deleteUser = async (req, res) => {
+  if (req.user._id.toString() !== req.params.id) {
+    return res.status(403).json({ message: "You can only delete your own account" });
+  }
+
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    req.logout((err) => {
+      if (err) return res.status(500).json({ message: "Error logging out" });
+      res.status(200).json({ message: "Account deleted successfully" });
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 // POST /api/users/:id/favourites/:restaurantId
 export const addFavourite = async (req, res) => {
   if (req.user._id.toString() !== req.params.id) {
