@@ -17,11 +17,9 @@ dotenv.config()
 const app = express()
 const PORT = process.env.PORT || 5000
 
-app.set('trust proxy', 1)
-
 connectDB()
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }))
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
 app.use(express.json())
 
 app.use(
@@ -30,11 +28,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-    },
+    cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 },
   })
 )
 
