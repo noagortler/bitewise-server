@@ -26,6 +26,7 @@ export const getDishes = async (req, res) => {
             dishName: { $first: '$dishName' },
             freeFrom: { $first: '$freeFrom' },
             modifications: { $first: '$modifications' },
+            otherModifications: { $first: '$otherModifications' },
             logCount: { $sum: 1 },
             lastLoggedAt: { $first: '$createdAt' },
             lastLoggedUserId: { $first: '$userId' },
@@ -46,6 +47,7 @@ export const getDishes = async (req, res) => {
             dishName: 1,
             freeFrom: 1,
             modifications: 1,
+            otherModifications: 1,
             logCount: 1,
             lastLoggedAt: 1,
             lastLoggedBy: {
