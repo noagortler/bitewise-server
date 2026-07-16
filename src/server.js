@@ -17,9 +17,22 @@ dotenv.config()
 const app = express()
 const PORT = process.env.PORT || 5000
 
+// Trust Render's reverse proxy so secure cookies work in production
+app.set('trust proxy', 1)
+
 connectDB()
 
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+// Allow requests from local dev and the deployed client
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://bitewise-app.onrender.com'
+]
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}))
+
 app.use(express.json())
 
 app.use(
@@ -28,7 +41,11 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
-    cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 },
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    },
   })
 )
 
