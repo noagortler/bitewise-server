@@ -81,7 +81,14 @@ export const logout = (req, res) => {
     if (err) {
       return res.status(500).json({ message: "Logout failed" });
     }
-    res.status(200).json({ message: "Logged out successfully" });
+    // Destroy the session and clear the cookie so the user is fully logged out
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.clearCookie("connect.sid");
+      res.status(200).json({ message: "Logged out successfully" });
+    });
   });
 };
 
