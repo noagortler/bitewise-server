@@ -86,7 +86,11 @@ export const logout = (req, res) => {
       if (err) {
         return res.status(500).json({ message: "Logout failed" });
       }
-      res.clearCookie("connect.sid");
+      // Cookie options must match how the cookie was set or the browser won't delete it
+      res.clearCookie("connect.sid", {
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      });
       res.status(200).json({ message: "Logged out successfully" });
     });
   });
