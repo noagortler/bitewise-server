@@ -78,7 +78,14 @@ export const searchRestaurants = async (req, res) => {
     // 1-3 character inputs that mostly cities/streets come back (which our
     // food filter then removes). Biasing to the user's location makes nearby
     // food places rank high enough to appear, and sorts results by proximity.
-    const requestBody = { input: query.trim() };
+    // Autocomplete returns at most 5 suggestions total. The debug log showed
+    // that broad filters let islands and lakes (also tagged "establishment")
+    // consume all 5 slots. Requesting food types directly guarantees every
+    // slot is a food business.
+    const requestBody = {
+      input: query.trim(),
+      includedPrimaryTypes: ["restaurant", "cafe", "bakery", "bar", "meal_takeaway"],
+    };
 
     if (lat && lng) {
       requestBody.locationBias = {

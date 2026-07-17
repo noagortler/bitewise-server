@@ -9,6 +9,7 @@ const UserSchema = new Schema(
     allergens: { type: [String], default: [] },
     favourites: [{ type: Schema.Types.ObjectId, ref: "Restaurant" }],
     defaultLocation: {
+      city: { type: String },
       lat: { type: Number },
       lng: { type: Number },
     },
