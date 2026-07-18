@@ -58,19 +58,29 @@ export const login = (req, res, next) => {
       return res.status(401).json({ message: info?.message || "Login failed" });
     }
 
-    req.logIn(user, (err) => {
+    req.logIn(user, async (err) => {
       if (err) return next(err);
 
-      res.status(200).json({
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        allergens: user.allergens,
-        favourites: user.favourites,
-        defaultLocation: user.defaultLocation,
-        createdAt: user.createdAt,
-      });
+      try {
+        // Populate favourites so the frontend has restaurant names for the
+        // saved restaurants list right after login
+        const populatedUser = await User.findById(user._id)
+          .select("-password")
+          .populate("favourites", "name");
+
+        res.status(200).json({
+          _id: populatedUser._id,
+          firstName: populatedUser.firstName,
+          lastName: populatedUser.lastName,
+          email: populatedUser.email,
+          allergens: populatedUser.allergens,
+          favourites: populatedUser.favourites,
+          defaultLocation: populatedUser.defaultLocation,
+          createdAt: populatedUser.createdAt,
+        });
+      } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+      }
     });
   })(req, res, next);
 };

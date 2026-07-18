@@ -3,7 +3,9 @@ import User from "../models/User.js";
 // GET /api/users/me
 export const getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select("-password");
+    const user = await User.findById(req.user._id)
+      .select("-password")
+      .populate("favourites", "name");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -100,6 +102,9 @@ export const addFavourite = async (req, res) => {
     user.favourites.push(req.params.restaurantId);
     await user.save();
 
+    // Populate so the frontend gets names for the saved restaurants list
+    await user.populate("favourites", "name");
+
     res.status(200).json({ _id: user._id, favourites: user.favourites });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -123,6 +128,9 @@ export const removeFavourite = async (req, res) => {
       (id) => id.toString() !== req.params.restaurantId
     );
     await user.save();
+
+    // Populate so the frontend gets names for the saved restaurants list
+    await user.populate("favourites", "name");
 
     res.status(200).json({ _id: user._id, favourites: user.favourites });
   } catch (error) {
