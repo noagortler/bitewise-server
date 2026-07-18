@@ -27,24 +27,59 @@ const isFoodPlace = (types) => {
 };
 
 // GET /api/restaurants
+// Accepts either viewport bounds (north/south/east/west) to return
+// everything visible on the map, or a lat/lng center with a radius.
 export const getRestaurants = async (req, res) => {
-  const { lat, lng, radius = 5000 } = req.query;
+  const { lat, lng, radius = 5000, north, south, east, west } = req.query;
 
-  if (!lat || !lng) {
-    return res.status(400).json({ message: "lat and lng are required" });
-  }
+  let locationMatch;
 
-  // Convert radius from meters to degrees (roughly 111,000 meters per degree)
-  const radiusInDegrees = parseFloat(radius) / 111000;
+  if (north && south && east && west) {
+    locationMatch = {
+      "location.lat": { $gte: parseFloat(south), $lte: parseFloat(north) },
+      "location.lng": { $gte: parseFloat(west), $lte: parseFloat(east) },
+    };
+  } else if (lat && lng) {
+    // Convert radius from meters to degrees (roughly 111,000 meters per degree)
+    const radiusInDegrees = parseFloat(radius) / 111000;
+    const latNum = parseFloat(lat);
+    const lngNum = parseFloat(lng);
 
-  const latNum = parseFloat(lat);
-  const lngNum = parseFloat(lng);
-
-  try {
-    const restaurants = await Restaurant.find({
+    locationMatch = {
       "location.lat": { $gte: latNum - radiusInDegrees, $lte: latNum + radiusInDegrees },
       "location.lng": { $gte: lngNum - radiusInDegrees, $lte: lngNum + radiusInDegrees },
-    });
+    };
+  } else {
+    return res.status(400).json({ message: "Either bounds (north, south, east, west) or lat and lng are required" });
+  }
+
+  try {
+    // Join each restaurant with its dishes and collect the distinct set of
+    // allergens its dishes are free from, so the map's allergen filter has
+    // something to match against
+    const restaurants = await Restaurant.aggregate([
+      { $match: locationMatch },
+      {
+        $lookup: {
+          from: "dishes",
+          localField: "_id",
+          foreignField: "restaurantId",
+          as: "dishes",
+        },
+      },
+      {
+        $addFields: {
+          allergens: {
+            $reduce: {
+              input: "$dishes.freeFrom",
+              initialValue: [],
+              in: { $setUnion: ["$$value", "$$this"] },
+            },
+          },
+        },
+      },
+      { $project: { dishes: 0 } },
+    ]);
 
     res.status(200).json(restaurants);
   } catch (error) {
@@ -94,7 +129,7 @@ export const searchRestaurants = async (req, res) => {
             latitude: parseFloat(lat),
             longitude: parseFloat(lng),
           },
-          radius: 50000.0,
+          radius: 15000.0,
         },
       };
     }
