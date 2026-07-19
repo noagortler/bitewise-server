@@ -49,6 +49,9 @@ export const updateUser = async (req, res) => {
 
   const { firstName, lastName, email, allergens, defaultLocation } = req.body;
 
+  // Capitalize names the same way registration does
+  const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
   try {
     if (email) {
       const existingUser = await User.findOne({ email });
@@ -59,7 +62,13 @@ export const updateUser = async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { firstName, lastName, email, allergens, defaultLocation },
+      {
+        firstName: firstName ? capitalize(firstName) : undefined,
+        lastName: lastName ? capitalize(lastName) : undefined,
+        email,
+        allergens,
+        defaultLocation,
+      },
       { new: true, runValidators: true }
     ).select("-password");
 
