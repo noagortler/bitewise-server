@@ -60,7 +60,10 @@ export const getDishes = async (req, res) => {
             }
           }
         },
-        { $sort: { dishName: 1 } }
+        // Most-logged dishes first: the community's most vouched-for dishes
+        // are the strongest signal, so they belong at the top. Ties break
+        // alphabetically.
+        { $sort: { logCount: -1, dishName: 1 } }
       ])
 
       return res.status(200).json(dishes)
