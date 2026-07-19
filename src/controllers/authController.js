@@ -1,10 +1,23 @@
 import bcrypt from "bcrypt";
 import passport from "passport";
 import User from "../models/User.js";
+import { isValidEmail, isStrongEnoughPassword } from "../utils/validators.js";
 
 // POST /api/auth/register
 export const register = async (req, res) => {
   const { firstName, lastName, email, password, allergens } = req.body;
+
+  if (!firstName || !lastName || !email || !password) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ message: "Invalid email format" });
+  }
+
+  if (!isStrongEnoughPassword(password)) {
+    return res.status(400).json({ message: "Password must be at least 8 characters" });
+  }
 
   try {
     // Check if a user with this email already exists
@@ -51,6 +64,10 @@ export const register = async (req, res) => {
 
 // POST /api/auth/login
 export const login = (req, res, next) => {
+  if (!req.body.email || !req.body.password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
 
@@ -62,8 +79,6 @@ export const login = (req, res, next) => {
       if (err) return next(err);
 
       try {
-        // Populate favourites so the frontend has restaurant names for the
-        // saved restaurants list right after login
         const populatedUser = await User.findById(user._id)
           .select("-password")
           .populate("favourites", "name");

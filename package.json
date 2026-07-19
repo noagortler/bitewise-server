@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "jest"
+    "seed": "node src/seed.js",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +27,9 @@
     "passport-local": "^1.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "mongodb-memory-server": "^10.2.0",
+    "nodemon": "^3.1.0",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.8"
   }
 }
